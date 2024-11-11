@@ -1,14 +1,18 @@
-FROM python
+FROM python:3.12.7-alpine3.20
 
-WORKDIR /app
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-COPY requirements.txt /app/
+COPY requirements.txt /temp/requirements.txt
+COPY . /backend
+WORKDIR /backend
+EXPOSE 8000
 
-RUN pip install --no-cache-dir -r requirements.txt
-COPY ./entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+RUN apk update && \
+    apk add postgresql-client build-base postgresql-dev
 
-COPY . /app/
+RUN pip install --upgrade pip && \
+    pip install -r /temp/requirements.txt
 
-
-ENTRYPOINT ["/app/entrypoint.sh"]
+RUN adduser --disabled-password service-user
+USER service-user
