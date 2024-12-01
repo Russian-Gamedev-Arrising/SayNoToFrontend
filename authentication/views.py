@@ -9,7 +9,7 @@ from django.contrib.auth import authenticate
 
 
 
-class Register(APIView):
+class RegisterView(APIView):
     '''Регистрация нового пользователя'''
     def post(self, request):
         login = request.data.get("login")
@@ -27,7 +27,7 @@ class Register(APIView):
         return Response({"token": token.key}, status=HTTP_200_OK)
 
 
-class Login(APIView):
+class LoginView(APIView):
     '''Авторизация пользователя'''
 
     def get(self, request):
@@ -45,7 +45,7 @@ class Login(APIView):
         return Response({"token": token.key}, status=HTTP_200_OK)
 
 
-class Logout(APIView):
+class LogoutView(APIView):
     """ Выход из системы (аннулирование токена)"""
 
     def get(self, request):

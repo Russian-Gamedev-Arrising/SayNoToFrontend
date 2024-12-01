@@ -92,9 +92,9 @@ DATABASES = {
 }
 
 REST_FRAMEWORK = {
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
-    ],
+    # "DEFAULT_PERMISSION_CLASSES": [
+    #     "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
+    # ], - хуйня которая не давала нормально делать грязь (зарерт (запрет) доступа потом починим похуй)
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
     
     'DEFAULT_AUTHENTICATION_CLASSES': [
