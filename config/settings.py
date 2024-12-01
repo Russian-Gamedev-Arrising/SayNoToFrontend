@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'rest_framework.authtoken',
+    "rest_framework.authtoken",
     # add
     "rest_framework",
     "corsheaders",
@@ -96,9 +96,8 @@ REST_FRAMEWORK = {
     #     "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     # ], - хуйня которая не давала нормально делать грязь (зарерт (запрет) доступа потом починим похуй)
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
-    
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
     ],
 }
 

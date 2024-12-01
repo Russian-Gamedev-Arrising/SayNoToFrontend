@@ -1,7 +1,8 @@
 [flake8]
 exclude = 
     .venv
+    venv
     migrations
     .idea
 max-line-length=80
-ignore = E203, E231, E501, W503, F403, E265, W293
+ignore = E203, E231, E501, W503, F403, E265, W293,E711
