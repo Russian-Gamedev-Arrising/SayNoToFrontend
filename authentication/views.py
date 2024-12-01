@@ -9,7 +9,7 @@ from django.contrib.auth import authenticate
 
 
 
-class RegisterView(APIView):
+class Register(APIView):
     '''Регистрация нового пользователя'''
     def post(self, request):
         login = request.data.get("login")
@@ -22,12 +22,15 @@ class RegisterView(APIView):
         if User.objects.filter(username=login).exists() or User.objects.filter(email=email).exists():
             return Response({"error": "Логин или email уже заняты"}, status=HTTP_400_BAD_REQUEST)
                 
+         # Создаем пользователя
         user = User.objects.create_user(username=login, email=email, password=password)
-        token = Token.objects.get_or_create(user=user)
+
+        # Создаем токен для пользователя
+        token, _ = Token.objects.get_or_create(user=user)  # Извлекаем объект токена
         return Response({"token": token.key}, status=HTTP_200_OK)
 
 
-class LoginView(APIView):
+class Login(APIView):
     '''Авторизация пользователя'''
 
     def get(self, request):
@@ -37,21 +40,25 @@ class LoginView(APIView):
         if identifier==None or password==None:
             return Response({"error": "Необходимо указать логин/email и пароль"}, status=HTTP_400_BAD_REQUEST)
 
+        # Аутентифицируем пользователя
         user = authenticate(username=identifier, password=password) or authenticate(email=identifier, password=password)
         if user is None:
             return Response({"error": "Неверный логин/email или пароль"}, status=HTTP_401_UNAUTHORIZED)
 
-        token, _ = Token.objects.get_or_create(user=user)
+        # Создаем токен или получаем существующий
+        token, _ = Token.objects.get_or_create(user=user)  # Извлекаем объект токена
         return Response({"token": token.key}, status=HTTP_200_OK)
 
 
 class LogoutView(APIView):
-    """ Выход из системы (аннулирование токена)"""
+    """
+    Выход из системы (аннулирование токена)
+    """
 
     def get(self, request):
         token_key = request.query_params.get("token")
         if not token_key:
-            return Response({"error": "Отсутсвует токен"}, status=HTTP_400_BAD_REQUEST)
+            return Response({"error": "Токен обязателен"}, status=HTTP_400_BAD_REQUEST)
 
         try:
             token = Token.objects.get(key=token_key)
