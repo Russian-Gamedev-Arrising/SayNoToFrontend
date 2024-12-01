@@ -23,7 +23,7 @@ class RegisterView(APIView):
             return Response({"error": "Логин или email уже заняты"}, status=HTTP_400_BAD_REQUEST)
                 
         user = User.objects.create_user(username=login, email=email, password=password)
-        token = Token.objects.get_or_create(user=user)
+        token, _ = Token.objects.get_or_create(user=user)
         return Response({"token": token.key}, status=HTTP_200_OK)
 
 
