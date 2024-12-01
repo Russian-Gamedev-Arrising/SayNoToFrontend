@@ -9,7 +9,7 @@ from django.contrib.auth import authenticate
 
 
 
-class Register(APIView):
+class RegisterView(APIView):
     '''Регистрация нового пользователя'''
     def post(self, request):
         login = request.data.get("login")
