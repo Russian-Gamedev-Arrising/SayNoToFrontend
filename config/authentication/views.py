@@ -18,9 +18,10 @@ class Register(APIView):
 
         if login == None or email == None or password == None:
             return Response({"error": "Все поля обязательны"}, status=HTTP_400_BAD_REQUEST)
-        
-        '''добавить проверку на то что уже есть почта или логин'''
-        
+
+        if User.objects.filter(username=login).exists() or User.objects.filter(email=email).exists():
+            return Response({"error": "Логин или email уже заняты"}, status=HTTP_400_BAD_REQUEST)
+                
         user = User.objects.create_user(username=login, email=email, password=password)
         token = Token.objects.get_or_create(user=user)
         return Response({"token": token.key}, status=HTTP_200_OK)
