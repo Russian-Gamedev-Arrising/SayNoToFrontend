@@ -34,7 +34,7 @@ class Login(APIView):
         identifier = request.query_params.get("login/email")
         password = request.query_params.get("password")
 
-        if not all([identifier, password]):
+        if identifier==None or password==None:
             return Response({"error": "Необходимо указать логин/email и пароль"}, status=HTTP_400_BAD_REQUEST)
 
         user = authenticate(username=identifier, password=password) or authenticate(email=identifier, password=password)
@@ -51,7 +51,7 @@ class Logout(APIView):
     def get(self, request):
         token_key = request.query_params.get("token")
         if not token_key:
-            return Response({"error": "Токен обязателен"}, status=HTTP_400_BAD_REQUEST)
+            return Response({"error": "Отсутсвует токен"}, status=HTTP_400_BAD_REQUEST)
 
         try:
             token = Token.objects.get(key=token_key)
