@@ -36,6 +36,11 @@
 ```bash
 pip freeze > requirements.txt   
 ```
+> [!IMPORTANT]
+> Инициализация pre-commit
+> ```bash
+> pre-commit install
+> ```
 
 Это мы пишем когда хотим запустить сервер
 
