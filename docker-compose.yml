@@ -9,7 +9,7 @@ services:
             - .env
         ports:
             - '8000:8000'
-        command: sh runserver.sh
+        command: sh runserver.sh 
         depends_on:
             - database
         networks:
