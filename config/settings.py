@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import os
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +27,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -38,10 +39,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework.authtoken",
+    "rest_framework_simplejwt",
     # add
     "rest_framework",
     "corsheaders",
+    "djoser",
     # apps
+    "authentication",
 ]
 
 MIDDLEWARE = [
@@ -90,10 +95,14 @@ DATABASES = {
 }
 
 REST_FRAMEWORK = {
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
-    ],
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",  # Уровень доступа по умолчанию
+    ],
 }
 
 
@@ -137,3 +146,27 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+#   Djoser Config. Если хотим изменить стандартного пользователя то здесь ебемся с конфигами
+
+DJOSER = {
+    "LOGIN_FIELD": "email",  # указываем какие параметры используем при регистрации
+    "LOGIN_FIELD": "username",  # не убирать все наебнется , можете поебаться с этим. Без этого при post запросе будет жаловаться на отсутвсие username даже если его указать при отправлении JSON запроса
+    "SERIALIZERS": {
+        "user_create": "djoser.serializers.UserCreateSerializer",  # Регистрация пользователя
+        "user": "djoser.serializers.UserSerializer",  # Стандартный пользователь
+    },
+    "TOKEN_MODEL": None,  # Для работы с JWT токенами вместо токенов DRF
+}
+
+# Simple JWT settings. Настройки нашено токена , удачи поебаться нам, когда добавим OAuth
+# Читайте документацию с кайфом -- https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html#auth-header-types
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),  # Время жизни access-токена
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),  # Время жизни refresh-токена
+    "AUTH_HEADER_TYPES": (
+        "Bearer",
+    ),  # Указываем заголовок Bearer-получение токена, с таким типом header у нас автоматически подставляется токен в Postman  и всех популярных браузерах
+}
