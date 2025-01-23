@@ -20,5 +20,8 @@ from django.urls import path, include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/", include("authentication.urls")),
+    path(
+        "api/", include("authentication.urls")
+    ),  # Все маршруты из приложения authentication
+    path("accounts/", include("allauth.urls")),  # Стандартные маршруты django-allauth
 ]

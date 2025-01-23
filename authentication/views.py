@@ -1,5 +1,10 @@
-from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
+from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
+from rest_framework.views import APIView
+from allauth.socialaccount.models import SocialAccount, SocialToken
+from allauth.socialaccount.helpers import complete_social_login
+from rest_framework import status
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_400_BAD_REQUEST,
@@ -59,9 +64,18 @@ class LoginView(APIView):
                 {"error": "Неверный логин/email или пароль"},
                 status=HTTP_401_UNAUTHORIZED,
             )
-
-        token, _ = Token.objects.get_or_create(user=user)
-        return Response({"token": token.key}, status=HTTP_200_OK)
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                },
+            },
+            status=HTTP_200_OK,
+        )
 
 
 class LogoutView(APIView):
@@ -82,3 +96,55 @@ class LogoutView(APIView):
             return Response(
                 {"error": "Токен недействителен"}, status=HTTP_401_UNAUTHORIZED
             )
+
+
+class GitHubLogin(APIView):
+    """
+    Вход через GitHub с выдачей JWT-токена.
+    """
+
+    def post(self, request, *args, **kwargs):
+        access_token = request.data.get("access_token")
+
+        if not access_token:
+            return Response(
+                {"error": "Токен доступа не предоставлен."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        adapter = GitHubOAuth2Adapter()
+        token = SocialToken(token=access_token)
+
+        try:
+            # Завершаем социальный вход через GitHub
+            login = complete_social_login(request, adapter, token)
+            user = login.user
+
+            if not user.is_active:
+                return Response(
+                    {"error": "Пользователь не активен."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Проверяем или создаём SocialAccount
+            social_account, _ = SocialAccount.objects.get_or_create(
+                user=user,
+                provider="github",
+                defaults={"extra_data": token.token_secret},
+            )
+
+            # Генерируем JWT-токены
+            refresh = RefreshToken.for_user(user)
+            return Response(
+                {
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                    "user": {
+                        "id": user.id,
+                        "email": user.email,
+                    },
+                },
+                status=HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

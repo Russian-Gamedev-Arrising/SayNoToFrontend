@@ -1,8 +1,11 @@
 from django.urls import path, include
-
+from django.urls import path
+from .views import GitHubLogin
 
 urlpatterns = [
+    # Djoser для управления пользователями
     path("v1/authentication/", include("djoser.urls")),
     path("v1/authentication/", include("djoser.urls.jwt")),
-    path("accounts/", include("allauth.urls")),
+    # Социальный логин через GitHub
+    path("v1/authentication/github/", GitHubLogin.as_view(), name="github-login"),
 ]
