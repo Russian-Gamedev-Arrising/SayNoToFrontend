@@ -47,11 +47,22 @@ INSTALLED_APPS = [
     "djoser",
     # apps
     "authentication",
+    "django.contrib.sites",  # Обязательно для allauth
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.github",  # Поддержка GitHub
 ]
+# Укажи ID текущего сайта (если это не сайт №1, обновить в админке)
+SITE_ID = 1
+
+# Настройка перенаправления после входа
+LOGIN_REDIRECT_URL = "/"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "allauth.account.middleware.AccountMiddleware",  # Добавлено для django-allauth
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -169,4 +180,13 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": (
         "Bearer",
     ),  # Указываем заголовок Bearer-получение токена, с таким типом header у нас автоматически подставляется токен в Postman  и всех популярных браузерах
+}
+SOCIALACCOUNT_PROVIDERS = {
+    "github": {
+        "APP": {
+            "client_id": os.getenv("GITHUB_CLIENT_ID"),
+            "secret": os.getenv("GITHUB_CLIENT_SECRET"),
+            "key": "",
+        }
+    }
 }
