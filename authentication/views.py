@@ -11,10 +11,6 @@ from rest_framework.status import (
     HTTP_401_UNAUTHORIZED,
 )
 from django.contrib.auth.models import User
-from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate
-
-# Create your views here.
 
 
 class RegisterView(APIView):
@@ -37,33 +33,42 @@ class RegisterView(APIView):
             return Response(
                 {"error": "Логин или email уже заняты"}, status=HTTP_400_BAD_REQUEST
             )
-
         user = User.objects.create_user(username=login, email=email, password=password)
-        token, _ = Token.objects.get_or_create(user=user)
-        return Response({"token": token.key}, status=HTTP_200_OK)
+        # Генерация JWT токенов
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            },
+            status=HTTP_200_OK,
+        )
 
 
 class LoginView(APIView):
     """Авторизация пользователя"""
 
-    def get(self, request):
-        identifier = request.query_params.get("login/email")
-        password = request.query_params.get("password")
+    def post(self, request):
+        identifier = request.data.get("login_or_email")
+        password = request.data.get("password")
 
         if identifier is None or password is None:
             return Response(
                 {"error": "Необходимо указать логин/email и пароль"},
                 status=HTTP_400_BAD_REQUEST,
             )
-
-        user = authenticate(username=identifier, password=password) or authenticate(
-            email=identifier, password=password
-        )
-        if user is None:
+        # Ищем пользователя по логину или email
+        try:
+            user = User.objects.get(username=identifier)
+        except User.DoesNotExist:
+            user = User.objects.filter(email=identifier).first()
+        # Проверяем пароль
+        if not user or not user.check_password(password):
             return Response(
                 {"error": "Неверный логин/email или пароль"},
                 status=HTTP_401_UNAUTHORIZED,
             )
+        # Генерация JWT токенов
         refresh = RefreshToken.for_user(user)
         return Response(
             {
@@ -81,20 +86,25 @@ class LoginView(APIView):
 class LogoutView(APIView):
     """Выход из системы (аннулирование токена)"""
 
-    def get(self, request):
-        token_key = request.query_params.get("token")
-        if not token_key:
-            return Response({"error": "Отсутсвует токен"}, status=HTTP_400_BAD_REQUEST)
+    def post(self, request):
+        refresh_token = request.data.get("refresh")
+        if not refresh_token:
+            return Response(
+                {"error": "Необходимо предоставить refresh токен."},
+                status=HTTP_400_BAD_REQUEST,
+            )
 
         try:
-            token = Token.objects.get(key=token_key)
-            token.delete()
+            # Отмечаем токен как недействительный
+            token = RefreshToken(refresh_token)
+            token.blacklist()
             return Response(
                 {"message": "Вы успешно вышли из системы"}, status=HTTP_200_OK
             )
-        except Token.DoesNotExist:
+        except Exception:
             return Response(
-                {"error": "Токен недействителен"}, status=HTTP_401_UNAUTHORIZED
+                {"error": "Недействительный токен"},
+                status=HTTP_400_BAD_REQUEST,
             )
 
 

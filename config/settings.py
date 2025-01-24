@@ -175,11 +175,11 @@ DJOSER = {
 # Читайте документацию с кайфом -- https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html#auth-header-types
 
 SIMPLE_JWT = {
+    "BLACKLIST_AFTER_ROTATION": True,
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),  # Время жизни access-токена
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),  # Время жизни refresh-токена
-    "AUTH_HEADER_TYPES": (
-        "Bearer",
-    ),  # Указываем заголовок Bearer-получение токена, с таким типом header у нас автоматически подставляется токен в Postman  и всех популярных браузерах
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    # Указываем заголовок Bearer-получение токена, с таким типом header у нас автоматически подставляется токен в Postman  и всех популярных браузерах
 }
 SOCIALACCOUNT_PROVIDERS = {
     "github": {
