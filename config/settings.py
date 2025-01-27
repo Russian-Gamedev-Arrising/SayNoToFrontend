@@ -29,6 +29,10 @@ DEBUG = os.environ.get("DEBUG")
 
 ALLOWED_HOSTS = ["*"]
 
+# Google OAuth
+GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID")
+GOOGLE_OAUTH_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET")
+GOOGLE_OAUTH_CALLBACK_URL = os.getenv("GOOGLE_OAUTH_CALLBACK_URL")
 
 # Application definition
 
@@ -52,6 +56,7 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.github",  # Поддержка GitHub
+    "allauth.socialaccount.providers.google",  # Google
 ]
 # Укажи ID текущего сайта (если это не сайт №1, обновить в админке)
 SITE_ID = 1
@@ -188,7 +193,20 @@ SOCIALACCOUNT_PROVIDERS = {
             "secret": os.getenv("GITHUB_CLIENT_SECRET"),
             "key": "",
         }
-    }
+    },
+    "google": {
+        "APPS": [
+            {
+                "client_id": GOOGLE_OAUTH_CLIENT_ID,
+                "secret": GOOGLE_OAUTH_CLIENT_SECRET,
+                "key": "",
+            },
+        ],
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+    },
 }
 
 AUTHENTICATION_BACKENDS = [

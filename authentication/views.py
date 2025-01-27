@@ -1,6 +1,7 @@
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from rest_framework.views import APIView
 from allauth.socialaccount.models import SocialAccount, SocialToken
 from allauth.socialaccount.helpers import complete_social_login
@@ -155,6 +156,57 @@ class GitHubLogin(APIView):
                     },
                 },
                 status=HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GoogleLoginView(APIView):
+    """
+    Вход через Google с выдачей JWT-токенов.
+    """
+
+    def post(self, request, *args, **kwargs):
+        access_token = request.data.get("access_token")
+
+        if not access_token:
+            return Response(
+                {"error": "Access token is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Проверяем токен через адаптер Google OAuth2
+        adapter = GoogleOAuth2Adapter()
+        token = SocialToken(token=access_token)
+
+        try:
+            # Завершаем социальный вход
+            login = complete_social_login(request, adapter, token)
+
+            # Получаем пользователя
+            user = login.user
+            if not user.is_active:
+                return Response(
+                    {"error": "User is inactive."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Проверяем или создаём SocialAccount
+            SocialAccount.objects.get_or_create(user=user, provider="google")
+
+            # Генерируем JWT-токены
+            refresh = RefreshToken.for_user(user)
+            return Response(
+                {
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                    "user": {
+                        "id": user.id,
+                        "email": user.email,
+                        "username": user.username,
+                    },
+                },
+                status=status.HTTP_200_OK,
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
